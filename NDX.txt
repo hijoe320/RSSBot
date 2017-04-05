@@ -1,0 +1,103 @@
+AAPL	Apple Inc.
+ADBE	Adobe Systems Inc.
+ADI	Analog Devices, Inc.
+ADP	Automatic Data Processing, Inc.
+ADSK	Autodesk, Inc.
+AKAM	Akamai Technologies, Inc.
+ALTR	Altera Corp.
+ALXN	Alexion Pharmaceuticals, Inc.
+AMAT	Applied Materials, Inc.
+AMGN	Amgen Inc.
+AMZN	Amazon.com Inc.
+ATVI	Activision Blizzard, Inc.
+AVGO	Avago Technologies Limited
+BBBY	Bed Bath & Beyond Inc.
+BIDU	Baidu, Inc.
+BIIB	Biogen Idec Inc.
+BRCM	Broadcom Corp.
+CA	CA Technologies, Inc.
+CELG	Celgene Corporation
+CERN	Cerner Corporation
+CHKP	Check Point Software Technologies Ltd.
+CHRW	CH Robinson Worldwide Inc.
+CHTR	Charter Communications, Inc.
+CMCSA	Comcast Corporation
+COST	Costco Wholesale Corporation
+CSCO	Cisco Systems, Inc.
+CTRX	Catamaran Corporation
+CTSH	Cognizant Technology Solutions Corporation
+CTXS	Citrix Systems, Inc.
+DISCA	Discovery Communications, Inc.
+DISCK	Discovery Communications, Inc.
+DISH	Dish Network Corp.
+DLTR	Dollar Tree, Inc.
+DTV	DIRECTV
+EBAY	eBay Inc.
+EQIX	Equinix, Inc.
+ESRX	Express Scripts Holding Company
+EXPD	Expeditors International of Washington Inc.
+EXPE	Expedia Inc.
+FAST	Fastenal Company
+FB	Facebook, Inc.
+FFIV	F5 Networks, Inc.
+FISV	Fiserv, Inc.
+FOXA	Twenty-First Century Fox, Inc.
+GILD	Gilead Sciences Inc.
+GMCR	Keurig Green Mountain, Inc.
+GOOG	Google Inc.
+GOOGL	Google Inc.
+GRMN	Garmin Ltd.
+HSIC	Henry Schein, Inc.
+ILMN	Illumina Inc.
+INTC	Intel Corporation
+INTU	Intuit Inc.
+ISRG	Intuitive Surgical, Inc.
+KLAC	KLA-Tencor Corporation
+KRFT	Kraft Foods Group, Inc.
+LBTYA	Liberty Global plc
+LINTA	Liberty Interactive Corporation
+LLTC	Linear Technology Corporation
+LMCA	Liberty Media Corporation
+LMCK	Liberty Media Corporation
+MAR	Marriott International, Inc.
+MAT	Mattel, Inc.
+MDLZ	Mondelez International, Inc.
+MNST	Monster Beverage Corporation
+MSFT	Microsoft Corporation
+MU	Micron Technology Inc.
+MXIM	Maxim Integrated Products, Inc.
+MYL	Mylan, Inc.
+NFLX	Netflix, Inc.
+NTAP	NetApp, Inc.
+NVDA	NVIDIA Corporation
+NXPI	NXP Semiconductors NV
+ORLY	O'Reilly Automotive Inc.
+PAYX	Paychex, Inc.
+PCAR	PACCAR Inc.
+PCLN	The Priceline Group Inc.
+QCOM	QUALCOMM Incorporated
+REGN	Regeneron Pharmaceuticals, Inc.
+ROST	Ross Stores Inc.
+SBAC	SBA Communications Corp.
+SBUX	Starbucks Corporation
+SIAL	Sigma-Aldrich Corporation
+SIRI	Sirius XM Holdings Inc.
+SNDK	SanDisk Corp.
+SPLS	Staples, Inc.
+SRCL	Stericycle, Inc.
+STX	Seagate Technology Public Limited Company
+SYMC	Symantec Corporation
+TRIP	TripAdvisor Inc.
+TSCO	Tractor Supply Company
+TSLA	Tesla Motors, Inc.
+TXN	Texas Instruments Inc.
+VIAB	Viacom, Inc.
+VIP	VimpelCom Ltd.
+VOD	Vodafone Group Public Limited Company
+VRSK	Verisk Analytics, Inc.
+VRTX	Vertex Pharmaceuticals Incorporated
+WDC	Western Digital Corporation
+WFM	Whole Foods Market, Inc.
+WYNN	Wynn Resorts Ltd.
+XLNX	Xilinx Inc.
+YHOO	Yahoo! Inc.
