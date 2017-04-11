@@ -1,6 +1,6 @@
 
 from argparse import ArgumentParser
-from time import mktime, sleep
+from time import mktime, sleep, gmtime
 from multiprocessing import Pool, Process
 import logging
 import urlparse
@@ -105,7 +105,7 @@ if __name__ == "__main__":
             uuid = hs(url)
             lock.acquire()
             if df.scard(uuid) == 0:
-                logging.debug("add to pending queue: sym=%5s, uuid=%s, url=%s", symbol, uuid, url)
+                logging.info("%sadd to pending queue: sym=%5s, uuid=%s, url=%s%s", Fore.GREEN, symbol, uuid, url, Style.RESET_ALL)
                 df.sadd(uuid, symbol)
                 lock.release()
                 published = e.get("published_parsed", None)
@@ -127,21 +127,25 @@ if __name__ == "__main__":
                 if not df.sismember(uuid, symbol):
                     df.sadd(uuid, symbol)
                     mongodb_cli.rssnews.news.update_one({"uuid":uuid}, {"$addToSet": {"symbols": symbol}})
+                    logging.info("%sadd %s to %s%s", Fore.GREEN, symbol, uuid, Style.RESET_ALL)
                     nb_new_items += 1
                 lock.release()
         if nb_new_items > 0:
             if hasattr(rss.feed, "updated_parsed"):
                 updated = time2ts(rss.feed.updated_parsed)
-                if mongodb_cli is None:
-                    temp_mc = pm.MongoClient(args.mongodb_uri)
-                else:
-                    temp_mc = mongodb_cli
-                temp_mc.rssnews.feed.find_one_and_update(
-                    {"_id": _id},
-                    {"$push": {"updated_timestamps": updated}, "$set": {"updated": updated}}
-                )
-                if mongodb_cli is None:
-                    temp_mc.close()
+            else:
+                updated = mktime(gmtime())
+            if mongodb_cli is None:
+                temp_mc = pm.MongoClient(args.mongodb_uri)
+            else:
+                temp_mc = mongodb_cli
+            temp_mc.rssnews.feed.find_one_and_update(
+                {"_id": _id},
+                {"$push": {"updated_timestamps": updated}, "$set": {"updated": updated}}
+            )
+            if mongodb_cli is None:
+                temp_mc.close()
+            logging.info("%sadded %d new items to %s%s", Back.GREEN, nb_new_items, symbol, Style.RESET_ALL)
         return nb_new_items
 
     class FeedWorker(object):
@@ -154,14 +158,12 @@ if __name__ == "__main__":
             while True:
                 self.cmd = rc.get("feed_updater")
                 if self.cmd == "start":
-                    nb_new_items = process(task, self.mc)
-                    if nb_new_items > 0:
-                        logging.info("added %d news urls to %s", nb_new_items, symbol)
+                    process(task, self.mc)
                 elif self.cmd == "stop":
-                    logging.info("%s process stopped", symbol)
+                    logging.info("%s%s process stopped%s", Back.RED, symbol, Style.RESET_ALL)
                     break
                 if args.update_interval > 1:
-                    logging.debug("%s process sleep for %d seconds", symbol, args.update_interval)
+                    logging.info("%s%s process sleep for %d seconds%s", Fore.GREEN, symbol, args.update_interval, Style.RESET_ALL)
                     sleep(args.update_interval)
 
     if args.mode == "each":     # each rss feed has its own process
@@ -181,12 +183,12 @@ if __name__ == "__main__":
                 else:
                     nb_new = sum([process(t) for t in tasks])
                 if nb_new > 0:
-                    logging.info("added %d new items", nb_new)
+                    logging.info("%sadded %d new items%s", Back.GREEN, nb_new, Style.RESET_ALL)
             elif cmd == "stop":
-                logging.info("updater stopped")
+                logging.info("%supdater stopped%s", Back.RED, Style.RESET_ALL)
                 break
             else:
-                logging.info("change value of 'feed_updater' to 'start' to start updating feeds.")
+                logging.info("%schange value of 'feed_updater' to 'start' to start updating feeds.%s", Fore.RED, Style.RESET_ALL)
             if args.update_interval > 1:
-                logging.info("wait for %d seconds", args.update_interval)
+                logging.info("%swait for %d seconds%s", Fore.GREEN, args.update_interval, Style.RESET_ALL)
                 sleep(args.update_interval)
