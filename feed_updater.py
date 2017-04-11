@@ -35,7 +35,11 @@ def extract_url(url):
     if '*' in url:
         _url = "http" + url.split("*http")[-1]
     elif url.startswith("http://finance.yahoo.com/r/"):
-        page_source = requests.get(url).text
+        headers = {
+            "User-Agent": "Mozilla/5.0 (iPad; U; CPU OS 4_2_1 like Mac OS X; en-gb) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8C148 Safari/6533.18.5",
+            "From": "http://finance.yahoo.com"
+        }
+        page_source = requests.get(url, headers=headers).text
         if page_source.startswith("<script src="):
             _url = page_source.split("URL=\'")[-1].split("\'")[0]
         else:
@@ -43,9 +47,8 @@ def extract_url(url):
     else:
         _url = url
     if "=yahoo" in _url:
-        return "{0}://{1}{2}".format(*urlparse.urlparse(_url))
-    else:
-        return _url
+        _url = "{0}://{1}{2}".format(*urlparse.urlparse(_url))
+    return _url
 
 
 if __name__ == "__main__":
