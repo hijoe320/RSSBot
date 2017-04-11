@@ -2,7 +2,6 @@ from time import sleep, gmtime, mktime
 from collections import defaultdict
 from datetime import datetime
 import zlib
-import urlparse
 import operator
 import logging
 import scrapy
@@ -87,18 +86,6 @@ def extract_content(res):
         return None
 
 
-def extract_final_url(res):
-    page = res.body
-    if page.startswith("<script src="):
-        url = page.split("URL=\'")[-1].split("\'")[0]
-        x = urlparse.urlparse(url)
-        if "=yahoo" in url:
-            url = "{scheme}://{netloc}{path}".format(scheme=x.scheme, netloc=x.netloc, path=x.path)
-        return url
-    else:
-        return None
-
-
 class ArticleSpider(scrapy.Spider):
     name = "articlespider"
 
@@ -127,22 +114,17 @@ class ArticleSpider(scrapy.Spider):
     def parse(self, res):
         logging.debug("%sparsing %s%s", Fore.LIGHTBLACK_EX, res.url, Style.RESET_ALL)
         self.feed_item["published_dt"] = datetime.fromtimestamp(self.feed_item["published"])
-        self.feed_item["parsed"] = mktime(gmtime())
-        self.feed_item["parsed_dt"] = datetime.fromtimestamp(self.feed_item["parsed"])
         self.parse_page(res)
 
     def parse_page(self, res):
-        url = extract_final_url(res.body)
-        if url is None:                     # this is the final article page
-            self.feed_item["url"] = res.url
-            self.feed_item["content"] = extract_content(res) or None
-            self.feed_item["compressed_html"] = zlib.compress(res.body)
-            self.update_db()
-        else:                               # true url extracted
-            self.feed_item["url"] = url
-            yield scrapy.Request(url=url)   # parse the final page instead
+        self.feed_item["url"] = res.url
+        self.feed_item["content"] = extract_content(res) or None
+        self.feed_item["compressed_html"] = zlib.compress(res.body)
+        self.update_db()
 
     def update_db(self):
+        self.feed_item["parsed"] = mktime(gmtime())
+        self.feed_item["parsed_dt"] = datetime.fromtimestamp(self.feed_item["parsed"])
         _id = self.mc.rssnews.news.insert_one(self.feed_item)
         logging.debug("%sparsed %s, mongodb _id=%s%s", Back.GREEN, self.feed_item["url"], _id, Style.RESET_ALL)
         if self.feed_item["content"] is not None:

@@ -9,6 +9,8 @@ import pymongo as pm
 import redis
 import msgpack
 import xxhash
+import requests
+from colorama import Back, Fore, Style
 from redlock import RedLock
 
 
@@ -32,9 +34,18 @@ def extract_url(url):
     """
     if '*' in url:
         _url = "http" + url.split("*http")[-1]
+    elif url.startswith("http://finance.yahoo.com/r/"):
+        page_source = requests.get(url).text
+        if page_source.startswith("<script src="):
+            _url = page_source.split("URL=\'")[-1].split("\'")[0]
+        else:
+            _url = url
     else:
         _url = url
-    return "{0}://{1}{2}".format(*urlparse.urlparse(_url))
+    if "=yahoo" in _url:
+        return "{0}://{1}{2}".format(*urlparse.urlparse(_url))
+    else:
+        return _url
 
 
 if __name__ == "__main__":
