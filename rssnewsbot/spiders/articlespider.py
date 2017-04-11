@@ -9,7 +9,7 @@ import scrapy
 import redis
 import msgpack
 import pymongo as pm
-from colorama import Back, Fore
+from colorama import Back, Fore, Style
 from bs4 import BeautifulSoup, Comment, Doctype, CData, ProcessingInstruction, Declaration, Tag
 from ..settings import MONGODB_URI, REDIS_HOST, REDIS_PORT, REDIS_PWD, PENDING_QUEUE
 
@@ -118,14 +118,14 @@ class ArticleSpider(scrapy.Spider):
                 req.headers["User-Agent"] = "Mozilla/5.0 (iPad; U; CPU OS 4_2_1 like Mac OS X; en-gb) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8C148 Safari/6533.18.5"
                 yield scrapy.Request(url=url)
             elif cmd == "stop":
-                logging.debug("%sarticle spider stopped", Fore.RED)
+                logging.debug("%sarticle spider stopped%s", Fore.RED, Style.RESET_ALL)
                 break
             else:
-                logging.debug("%swaiting for cmd, set key 'article_spider' to 'start' or 'stop'", Fore.GREEN)
+                logging.debug("%swaiting for cmd, set key 'article_spider' to 'start' or 'stop'%s", Fore.GREEN, Style.RESET_ALL)
                 sleep(10)
 
     def parse(self, res):
-        logging.debug("%sparsing %s", Fore.LIGHTBLACK_EX, res.url)
+        logging.debug("%sparsing %s%s", Fore.LIGHTBLACK_EX, res.url, Style.RESET_ALL)
         self.feed_item["published_dt"] = datetime.fromtimestamp(self.feed_item["published"])
         self.feed_item["parsed"] = mktime(gmtime())
         self.feed_item["parsed_dt"] = datetime.fromtimestamp(self.feed_item["parsed"])
@@ -144,9 +144,9 @@ class ArticleSpider(scrapy.Spider):
 
     def update_db(self):
         _id = self.mc.rssnews.news.insert_one(self.feed_item)
-        logging.debug("%sparsed %s, mongodb _id=%s", Back.GREEN, self.feed_item["url"], _id)
+        logging.debug("%sparsed %s, mongodb _id=%s%s", Back.GREEN, self.feed_item["url"], _id, Style.RESET_ALL)
         if self.feed_item["content"] is not None:
             self.rc.lpush("nlp", str(_id))
         else:
-            logging.warning("%sfail to extract content, url=%s", Back.RED, self.feed_item["url"])
+            logging.warning("%sfail to extract content, url=%s%s", Back.RED, self.feed_item["url"], Style.RESET_ALL)
         self.feed_item = None
