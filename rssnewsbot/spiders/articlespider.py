@@ -109,8 +109,8 @@ class ArticleSpider(scrapy.Spider):
         self.feed_item = None
 
     def start_requests(self):
-        cmd = self.rc.get("article_spider")
         while True:
+            cmd = self.rc.get("article_spider")
             if cmd == "start":
                 self.feed_item = msgpack.unpackb(self.rc.brpop(PENDING_QUEUE))
                 url = self.feed_item["url"]
