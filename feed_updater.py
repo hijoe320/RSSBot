@@ -67,7 +67,7 @@ if __name__ == "__main__":
     if args.debug:
         logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)-8s %(message)s")
 
-    mc = pm.MongoClient(host=args.mongodb_uri)
+    mc = pm.MongoClient(host=args.mongodb_uri, connect=False)
     rc = redis.Redis(host=args.redis_host, port=args.redis_port, password=args.redis_pwd, db=0)
     df = redis.Redis(host=args.redis_host, port=args.redis_port, password=args.redis_pwd, db=1)
     lock = RedLock([{"host": args.redis_host, "port": args.redis_port, "db": 3}])
@@ -136,21 +136,22 @@ if __name__ == "__main__":
             else:
                 updated = mktime(gmtime())
             if mongodb_cli is None:
-                temp_mc = pm.MongoClient(args.mongodb_uri)
+                with pm.MongoClient(args.mongodb_uri, connect=False) as temp_mc:
+                    temp_mc.rssnews.feed.find_one_and_update(
+                        {"_id": _id},
+                        {"$push": {"updated_timestamps": updated}, "$set": {"updated": updated}}
+                    )
             else:
-                temp_mc = mongodb_cli
-            temp_mc.rssnews.feed.find_one_and_update(
-                {"_id": _id},
-                {"$push": {"updated_timestamps": updated}, "$set": {"updated": updated}}
-            )
-            if mongodb_cli is None:
-                temp_mc.close()
+                mongodb_cli.rssnews.feed.find_one_and_update(
+                    {"_id": _id},
+                    {"$push": {"updated_timestamps": updated}, "$set": {"updated": updated}}
+                )
             logging.info("%sadded %d new items to %s%s", Back.GREEN, nb_new_items, symbol, Style.RESET_ALL)
         return nb_new_items
 
     class FeedWorker(object):
         def __init__(self):
-            self.mc = pm.MongoClient(args.mongodb_uri)
+            self.mc = pm.MongoClient(args.mongodb_uri, connect=False)
             self.cmd = None
 
         def __call__(self, task):
@@ -158,7 +159,7 @@ if __name__ == "__main__":
             while True:
                 self.cmd = rc.get("feed_updater")
                 if self.cmd == "start":
-                    process(task, self.mc)
+                    process(task, mongodb_cli=self.mc)
                 elif self.cmd == "stop":
                     logging.info("%s%s process stopped%s", Back.RED, symbol, Style.RESET_ALL)
                     break
