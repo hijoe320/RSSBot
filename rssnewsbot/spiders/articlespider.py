@@ -91,7 +91,10 @@ class ArticleSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super(ArticleSpider, self).__init__(*args, **kwargs)
-        self.rc = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
+        if (REDIS_HOST == "localhost") and (REDIS_PORT == 6379):
+            self.rc = redis.Redis()
+        else:
+            self.rc = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
         self.mc = pm.MongoClient(host=MONGODB_URI)
         self.feed_item = None
 
@@ -99,7 +102,7 @@ class ArticleSpider(scrapy.Spider):
         while True:
             cmd = self.rc.get("article_spider")
             if cmd == "start":
-                self.feed_item = msgpack.unpackb(self.rc.brpop(PENDING_QUEUE))
+                self.feed_item = msgpack.unpackb(self.rc.brpop(PENDING_QUEUE)[1])
                 url = self.feed_item["url"]
                 req = scrapy.Request(url=url)
                 req.headers["User-Agent"] = "Mozilla/5.0 (iPad; U; CPU OS 4_2_1 like Mac OS X; en-gb) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8C148 Safari/6533.18.5"
