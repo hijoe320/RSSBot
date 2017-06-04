@@ -114,12 +114,12 @@ if __name__ == "__main__":
                 rss_xml = requests.get(rss_url, proxies={"http": args.proxy})
             except:
                 logging.warning("%serror loading feed, tid=%03d, _id=%s, sym=%5s, rss_url=%s, updated=%d%s", Back.Red, tid, _id, symbol, rss_url, rss_updated, Style.RESET_ALL)
-                continue
+                return
             try:
                 rss = fp.parse(rss_xml)
             except:
                 logging.warning("%serror parsing feed, tid=%03d, _id=%s, sym=%5s, rss_url=%s, updated=%d%s", Back.Red, tid, _id, symbol, rss_url, rss_updated, Style.RESET_ALL)
-                continue
+                return
         else:
             rss = fp.parse(rss_url)
         nb_new_items = 0
