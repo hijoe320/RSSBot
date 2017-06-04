@@ -91,7 +91,7 @@ class ArticleSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super(ArticleSpider, self).__init__(*args, **kwargs)
-        self.rc = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PWD)
+        self.rc = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
         self.mc = pm.MongoClient(host=MONGODB_URI)
         self.feed_item = None
 
