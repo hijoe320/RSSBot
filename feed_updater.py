@@ -108,7 +108,10 @@ if __name__ == "__main__":
         """
         tid, _id, symbol, rss_url, rss_updated = task
         logging.debug("processing tid=%03d, _id=%s, sym=%5s, rss_url=%s, updated=%d", tid, _id, symbol, rss_url, rss_updated)
-        rss = fp.parse(requests.get(rss_url, proxies={"http": args.proxy}))
+        if args.proxy:
+            rss = fp.parse(requests.get(rss_url, proxies={"http": args.proxy}))
+        else:
+            rss = fp.parse(rss_url)
         nb_new_items = 0
         for e in rss.entries:
             url = extract_url(e.link)
@@ -184,7 +187,7 @@ if __name__ == "__main__":
         mcs = [pm.MongoClient(host=args.mongodb_uri, connect=False) for _ in tasks]
         procs = []
         for i, t in enumerate(tasks):
-            procs.append(Process(target=FeedWorker(), args=(t, mcs[i])))
+            procs.append(Process(target=FeedWorker, args=(t, mcs[i])))
         for proc in procs:
             proc.start()
         for proc in procs:
@@ -192,8 +195,7 @@ if __name__ == "__main__":
         [x.close() for x in mcs]
     elif args.mode == "all":    # all rss feeds are processed by a pool of workers
         logging.info("use %d processes", args.procs)
-
-        mcs = [pm.MongoClient(host=args.mongodb_uri, connect=False) for _ in range(args.procs)]
+        mcs = [pm.MongoClient(host=args.mongodb_uri, connect=False) for x in range(args.procs)]
         while True:
             cmd = rc.get("feed_updater")
             if cmd == "start":
