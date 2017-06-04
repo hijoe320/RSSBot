@@ -202,7 +202,7 @@ if __name__ == "__main__":
             if cmd == "start":
                 if args.procs > 1:
                     def processx(task_i):
-                        t = task_i[0]
+                        t, i = task_i
                         mc = mcs[i]
                         return process(t, mc)
                     pool = Pool(args.procs)
