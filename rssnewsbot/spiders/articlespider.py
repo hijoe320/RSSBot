@@ -97,17 +97,17 @@ class ArticleSpider(scrapy.Spider):
         else:
             self.rc = redis.Redis()
         self.mc = pm.MongoClient(host=MONGODB_URI)
-        self.feed_item = None
 
     def start_requests(self):
         while True:
             cmd = self.rc.get("article_spider")
             if cmd == "start":
-                self.feed_item = msgpack.unpackb(self.rc.brpop(PENDING_QUEUE, 50)[1])
-                if self.feed_item is None:
+                feed_item = msgpack.unpackb(self.rc.brpop(PENDING_QUEUE, 50)[1])
+                if feed_item is None:
                     sleep(5)
-                url = self.feed_item["url"]
-                req = scrapy.Request(url=url)
+                    continue
+                url = feed_item["url"]
+                req = scrapy.Request(url=url, meta=feed_item)
                 req.headers["User-Agent"] = "Mozilla/5.0 (iPad; U; CPU OS 4_2_1 like Mac OS X; en-gb) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8C148 Safari/6533.18.5"
                 yield scrapy.Request(url=url)
             elif cmd == "stop":
@@ -119,22 +119,22 @@ class ArticleSpider(scrapy.Spider):
 
     def parse(self, res):
         logging.debug("%sparsing %s%s", Fore.LIGHTBLACK_EX, res.url, Style.RESET_ALL)
-        self.feed_item["published_dt"] = datetime.fromtimestamp(self.feed_item["published"])
-        self.parse_page(res)
+        feed_item = res.meta
+        feed_item["published_dt"] = datetime.fromtimestamp(feed_item["published"])
+        self.parse_page(res, feed_item)
 
-    def parse_page(self, res):
-        self.feed_item["url"] = res.url
-        self.feed_item["content"] = extract_content(res) or None
-        self.feed_item["compressed_html"] = res.body
-        self.update_db()
+    def parse_page(self, res, feed_item):
+        feed_item["url"] = res.url
+        feed_item["content"] = extract_content(res) or None
+        feed_item["compressed_html"] = res.body
+        self.update_db(feed_item)
 
-    def update_db(self):
-        self.feed_item["parsed"] = mktime(gmtime())
-        self.feed_item["parsed_dt"] = datetime.fromtimestamp(self.feed_item["parsed"])
-        _id = self.mc.rssnews.news.insert_one(self.feed_item)
-        logging.debug("%sparsed %s, mongodb _id=%s%s", Back.GREEN, self.feed_item["url"], _id, Style.RESET_ALL)
-        if self.feed_item["content"] is not None:
+    def update_db(self, feed_item):
+        feed_item["parsed"] = mktime(gmtime())
+        feed_item["parsed_dt"] = datetime.fromtimestamp(feed_item["parsed"])
+        _id = self.mc.rssnews.news.insert_one(feed_item)
+        logging.debug("%sparsed %s, mongodb _id=%s%s", Back.GREEN, feed_item["url"], _id, Style.RESET_ALL)
+        if feed_item["content"] is not None:
             self.rc.lpush("nlp", str(_id))
         else:
-            logging.warning("%sfail to extract content, url=%s%s", Back.RED, self.feed_item["url"], Style.RESET_ALL)
-        self.feed_item = None
+            logging.warning("%sfail to extract content, url=%s%s", Back.RED, feed_item["url"], Style.RESET_ALL)
