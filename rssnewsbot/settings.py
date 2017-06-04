@@ -14,14 +14,26 @@ BOT_NAME = 'rssnewsbot'
 SPIDER_MODULES = ['rssnewsbot.spiders']
 NEWSPIDER_MODULE = 'rssnewsbot.spiders'
 
+PROXY = "108.59.14.203:13010"
+
 # DB configurations
 MONGODB_URI = 'mongodb://localhost:27017'
-REDIS_HOST = 'localhost'
-REDIS_PORT = 6379
-REDIS_PWD = None
 
-PENDING_QUEUE = 'pending'
-DB_DUPFLT = 'dupflt'
+REDIS_TASKS = {
+    "host": "localhost",
+    "port": 6739,
+    "password": None,
+    "db": 0
+}
+
+REDIS_DUPFLT = {
+    "host": "localhost",
+    "port": 6739,
+    "password": None,
+    "db": 1
+}
+
+REDIS_PENDING_QUEUE = 'pending'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'rssnewsbot (+http://www.yourdomain.com)'
@@ -60,9 +72,9 @@ ROBOTSTXT_OBEY = True
 
 # Enable or disable downloader middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    'rssnewsbot.middlewares.MyCustomDownloaderMiddleware': 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+    'scrapy.contrib.downloadermiddleware.httpproxy.HttpProxyMiddleware': 1,
+}
 
 # Enable or disable extensions
 # See http://scrapy.readthedocs.org/en/latest/topics/extensions.html

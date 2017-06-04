@@ -32,22 +32,28 @@ def extract_url(url):
     """
     extract the real url from yahoo rss feed item
     """
-    if '*' in url:
+    _url = None
+    if '*' in url:                                          # old style yahoo redirect link
         _url = "http" + url.split("*http")[-1]
-    elif url.startswith("http://finance.yahoo.com/r/"):
+    elif url.startswith("http://finance.yahoo.com/r/"):     # new style yahoo redirect link
         headers = {
             "User-Agent": "Mozilla/5.0 (iPad; U; CPU OS 4_2_1 like Mac OS X; en-gb) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8C148 Safari/6533.18.5",
             "From": "http://finance.yahoo.com"
         }
-        page_source = requests.get(url, headers=headers).text
-        if page_source.startswith("<script src="):
-            _url = page_source.split("URL=\'")[-1].split("\'")[0]
+        res = requests.get(url, headers=headers)
+        if res.status_code == 200:
+            page_source = res.text
+            if page_source.startswith("<script src="):      # yahoo now uses javascript to make page redirection
+                _url = page_source.split("URL=\'")[-1].split("\'")[0]
+            else:
+                _url = url # TODO: is this correct?
         else:
-            _url = url
+            logging.warning("%sabnormal http status code [%s] url=%s%s", Back.RED, res.status_code, url, Style.RESET_ALL)
     else:
         _url = url
-    if "=yahoo" in _url:
-        _url = "{0}://{1}{2}".format(*urlparse.urlparse(_url))
+    # if _url is not None:
+    #     if "=yahoo" in _url:                                    # ignore redirect tracking parameters
+    #         _url = "{0}://{1}{2}".format(*urlparse.urlparse(_url))
     return _url
 
 
@@ -62,6 +68,7 @@ if __name__ == "__main__":
     ap.add_argument("--update-interval", type=int, default=60)
     ap.add_argument("-v", "--verbose", action="store_true")
     ap.add_argument("--debug", action="store_true")
+    ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
     if args.verbose:
@@ -91,7 +98,6 @@ if __name__ == "__main__":
             logging.debug("rss=%(url)s", item)
             t = [len(tasks), item["_id"], item["symbol"], item["url"], item.get("updated", 0)]
             tasks.append(t)
-
     mc.close()
 
     def process(task, mongodb_cli=None):
@@ -105,6 +111,9 @@ if __name__ == "__main__":
         nb_new_items = 0
         for e in rss.entries:
             url = extract_url(e.link)
+            if url is None:
+                logging.warning("%sfail to extract url, sym=%s, link=%s%s", Back.RED, symbol, e.link, Style.RESET_ALL)
+                continue
             uuid = hs(url)
             lock.acquire()
             if df.scard(uuid) == 0:
@@ -171,21 +180,27 @@ if __name__ == "__main__":
                     sleep(args.update_interval)
 
     if args.mode == "each":     # each rss feed has its own process
-        procs = [Process(target=FeedWorker(), args=(t,)) for t in tasks]
+        mcs = [pm.MongoClient(host=args.mongodb_uri, connect=False) for _ in tasks]
+        procs = []
+        for i, t in enumerate(tasks):
+            procs.append(Process(target=FeedWorker(), args=(t, mcs[i])))
         for proc in procs:
             proc.start()
         for proc in procs:
             proc.join()
+        [x.close() for x in mcs]
     elif args.mode == "all":    # all rss feeds are processed by a pool of workers
         logging.info("use %d processes", args.procs)
+
+        mcs = [pm.MongoClient(host=args.mongodb_uri, connect=False) for _ in range(args.procs)]
         while True:
             cmd = rc.get("feed_updater")
             if cmd == "start":
                 if args.procs > 1:
                     pool = Pool(args.procs)
-                    nb_new = sum(pool.map(process, tasks))
+                    nb_new = sum(pool.map(process, zip(tasks, mcs)))
                 else:
-                    nb_new = sum([process(t) for t in tasks])
+                    nb_new = sum([process(t, mcs[0]) for t in tasks])
                 if nb_new > 0:
                     logging.info("%sadded %d new items%s", Back.GREEN, nb_new, Style.RESET_ALL)
             elif cmd == "stop":
@@ -196,3 +211,4 @@ if __name__ == "__main__":
             if args.update_interval > 1:
                 logging.info("%swait for %d seconds%s", Fore.GREEN, args.update_interval, Style.RESET_ALL)
                 sleep(args.update_interval)
+        [x.close() for x in mcs]
