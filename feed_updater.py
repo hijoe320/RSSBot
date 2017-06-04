@@ -191,7 +191,7 @@ if __name__ == "__main__":
         mcs = [pm.MongoClient(host=args.mongodb_uri, connect=False) for _ in tasks]
         procs = []
         for i, t in enumerate(tasks):
-            procs.append(Process(target=FeedWorker(mc=mcs[i]), t))
+            procs.append(Process(target=FeedWorker(mcs[i]), t))
         for proc in procs:
             proc.start()
         for proc in procs:
@@ -205,7 +205,7 @@ if __name__ == "__main__":
             if cmd == "start":
                 if args.procs > 1:
                     pool = Pool(args.procs)
-                    nb_new = sum(pool.map(processx, itertools.izip(tasks, mcs)))
+                    nb_new = sum(pool.map(process, itertools.izip(tasks, mcs)))
                 else:
                     nb_new = sum([process(t, mcs[0]) for t in tasks])
                 if nb_new > 0:
