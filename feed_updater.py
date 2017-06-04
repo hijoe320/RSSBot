@@ -4,6 +4,7 @@ from time import mktime, sleep, gmtime
 from multiprocessing import Pool, Process
 import logging
 import urlparse
+import itertools
 import feedparser as fp
 import pymongo as pm
 import redis
@@ -165,9 +166,12 @@ if __name__ == "__main__":
             logging.info("%sadded %d new items to %s%s", Back.GREEN, nb_new_items, symbol, Style.RESET_ALL)
         return nb_new_items
 
+    def processx(task_mc):
+        return process(*task_mc)
+
     class FeedWorker(object):
-        def __init__(self):
-            self.mc = pm.MongoClient(args.mongodb_uri, connect=False)
+        def __init__(self, mc):
+            self.mc = mc
             self.cmd = None
 
         def __call__(self, task):
@@ -187,7 +191,7 @@ if __name__ == "__main__":
         mcs = [pm.MongoClient(host=args.mongodb_uri, connect=False) for _ in tasks]
         procs = []
         for i, t in enumerate(tasks):
-            procs.append(Process(target=FeedWorker, args=(t, mcs[i])))
+            procs.append(Process(target=FeedWorker(mc=mcs[i]), t))
         for proc in procs:
             proc.start()
         for proc in procs:
@@ -201,7 +205,7 @@ if __name__ == "__main__":
             if cmd == "start":
                 if args.procs > 1:
                     pool = Pool(args.procs)
-                    nb_new = sum(pool.map(process, zip(tasks, mcs)))
+                    nb_new = sum(pool.map(processx, itertools.izip(tasks, mcs)))
                 else:
                     nb_new = sum([process(t, mcs[0]) for t in tasks])
                 if nb_new > 0:
