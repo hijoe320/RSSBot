@@ -19,6 +19,11 @@ PROXY = "108.59.14.203:13010"
 # DB configurations
 MONGODB_URI = 'mongodb://localhost:27017'
 
+# for single machine config
+# TODO: remove this later
+REDIS_HOST = "localhost"
+REDIS_PORT = 6739
+
 REDIS_TASKS = {
     "host": "localhost",
     "port": 6739,
