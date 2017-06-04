@@ -63,6 +63,7 @@ if __name__ == "__main__":
     ap.add_argument("--redis-host", type=str, default="localhost")
     ap.add_argument("--redis-port", default=6379, type=int)
     ap.add_argument("--redis-pwd", default=None, type=str)
+    ap.add_argument("--proxy", type=str, default="108.59.14.203:13010")
     ap.add_argument("--mode", default="one", choices=["each", "all"])
     ap.add_argument("--procs", default=4, type=int)
     ap.add_argument("--update-interval", type=int, default=60)
@@ -107,7 +108,7 @@ if __name__ == "__main__":
         """
         tid, _id, symbol, rss_url, rss_updated = task
         logging.debug("processing tid=%03d, _id=%s, sym=%5s, rss_url=%s, updated=%d", tid, _id, symbol, rss_url, rss_updated)
-        rss = fp.parse(rss_url)
+        rss = fp.parse(requests.get(rss_url, proxies={"http": args.proxy}))
         nb_new_items = 0
         for e in rss.entries:
             url = extract_url(e.link)
