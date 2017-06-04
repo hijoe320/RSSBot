@@ -95,7 +95,7 @@ class ArticleSpider(scrapy.Spider):
         if (REDIS_HOST == "localhost") and (REDIS_PORT == 6379):
             self.rc = redis.Redis()
         else:
-            self.rc = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
+            self.rc = redis.Redis()
         self.mc = pm.MongoClient(host=MONGODB_URI)
         self.feed_item = None
 
