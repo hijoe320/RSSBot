@@ -203,10 +203,9 @@ if __name__ == "__main__":
                 if args.procs > 1:
                     def processx(task_i):
                         t, i = task_i
-                        mc = mcs[i]
-                        return process(t, mc)
+                        process(t, mcs[i])
                     pool = Pool(args.procs)
-                    argpacks = zip(tasks, mcs)
+                    argpacks = zip(tasks, range(len(tasks)))
                     nb_new = sum(pool.map(processx, argpacks))
                 else:
                     nb_new = sum([process(t, mcs[0]) for t in tasks])
