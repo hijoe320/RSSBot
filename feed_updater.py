@@ -196,7 +196,7 @@ if __name__ == "__main__":
         [x.close() for x in mcs]
     elif args.mode == "all":    # all rss feeds are processed by a pool of workers
         logging.info("use %d processes", args.procs)
-        mcs = [pm.MongoClient(host=args.mongodb_uri, connect=False) for x in range(args.procs)]
+        mcs = [pm.MongoClient(host=args.mongodb_uri, connect=False) for x in range(args.tasks)]
         while True:
             cmd = rc.get("feed_updater")
             if cmd == "start":
@@ -206,7 +206,7 @@ if __name__ == "__main__":
                         mc = mcs[i]
                         return process(t, mc)
                     pool = Pool(args.procs)
-                    argpacks = zip(tasks, range(len(tasks)))
+                    argpacks = zip(tasks, mcs)
                     nb_new = sum(pool.map(processx, argpacks))
                 else:
                     nb_new = sum([process(t, mcs[0]) for t in tasks])
