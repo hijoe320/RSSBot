@@ -55,7 +55,8 @@ def extract_content(res):
 
         # remove footer
         try:
-            soup.footer.extract()
+            if soup.footer:
+                soup.footer.extract()
         except e:
             pass
         for div in soup.select("#footer"):
@@ -102,7 +103,9 @@ class ArticleSpider(scrapy.Spider):
         while True:
             cmd = self.rc.get("article_spider")
             if cmd == "start":
-                self.feed_item = msgpack.unpackb(self.rc.brpop(PENDING_QUEUE)[1])
+                self.feed_item = msgpack.unpackb(self.rc.brpop(PENDING_QUEUE, 50)[1])
+                if self.feed_item is None:
+                    sleep(5)
                 url = self.feed_item["url"]
                 req = scrapy.Request(url=url)
                 req.headers["User-Agent"] = "Mozilla/5.0 (iPad; U; CPU OS 4_2_1 like Mac OS X; en-gb) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8C148 Safari/6533.18.5"
@@ -122,7 +125,7 @@ class ArticleSpider(scrapy.Spider):
     def parse_page(self, res):
         self.feed_item["url"] = res.url
         self.feed_item["content"] = extract_content(res) or None
-        self.feed_item["compressed_html"] = zlib.compress(res.body)
+        self.feed_item["compressed_html"] = res.body
         self.update_db()
 
     def update_db(self):
