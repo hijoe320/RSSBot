@@ -166,9 +166,6 @@ if __name__ == "__main__":
             logging.info("%sadded %d new items to %s%s", Back.GREEN, nb_new_items, symbol, Style.RESET_ALL)
         return nb_new_items
 
-    def processx(task_mc):
-        return process(*task_mc)
-
     class FeedWorker(object):
         def __init__(self, mc):
             self.mc = mc
@@ -204,8 +201,13 @@ if __name__ == "__main__":
             cmd = rc.get("feed_updater")
             if cmd == "start":
                 if args.procs > 1:
+                    def processx(task_i):
+                        t = task_i[0]
+                        mc = mcs[i]
+                        return process(t, mc)
                     pool = Pool(args.procs)
-                    nb_new = sum(pool.map(processx, itertools.izip(tasks, mcs)))
+                    argpacks = zip(tasks, range(len(tasks)))
+                    nb_new = sum(pool.map(processx, argpacks))
                 else:
                     nb_new = sum([process(t, mcs[0]) for t in tasks])
                 if nb_new > 0:
