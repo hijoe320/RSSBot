@@ -205,7 +205,7 @@ if __name__ == "__main__":
             if cmd == "start":
                 if args.procs > 1:
                     pool = Pool(args.procs)
-                    nb_new = sum(pool.map(process, itertools.izip(tasks, mcs)))
+                    nb_new = sum(pool.map(processx, itertools.izip(tasks, mcs)))
                 else:
                     nb_new = sum([process(t, mcs[0]) for t in tasks])
                 if nb_new > 0:
