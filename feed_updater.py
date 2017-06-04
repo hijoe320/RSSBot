@@ -191,7 +191,7 @@ if __name__ == "__main__":
         mcs = [pm.MongoClient(host=args.mongodb_uri, connect=False) for _ in tasks]
         procs = []
         for i, t in enumerate(tasks):
-            procs.append(Process(target=FeedWorker(mcs[i]), t))
+            procs.append(Process(FeedWorker(mcs[i]), t))
         for proc in procs:
             proc.start()
         for proc in procs:
