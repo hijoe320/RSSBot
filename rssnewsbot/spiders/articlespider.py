@@ -109,7 +109,7 @@ class ArticleSpider(scrapy.Spider):
                 url = feed_item["url"]
                 req = scrapy.Request(url=url, meta={"feed_item": feed_item})
                 req.headers["User-Agent"] = "Mozilla/5.0 (iPad; U; CPU OS 4_2_1 like Mac OS X; en-gb) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8C148 Safari/6533.18.5"
-                yield scrapy.Request(url=url)
+                yield req
             elif cmd == "stop":
                 logging.debug("%sarticle spider stopped%s", Fore.RED, Style.RESET_ALL)
                 break
