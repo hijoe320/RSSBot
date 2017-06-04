@@ -107,7 +107,7 @@ class ArticleSpider(scrapy.Spider):
                     sleep(5)
                     continue
                 url = feed_item["url"]
-                req = scrapy.Request(url=url, meta=feed_item)
+                req = scrapy.Request(url=url, meta={"feed_item": feed_item})
                 req.headers["User-Agent"] = "Mozilla/5.0 (iPad; U; CPU OS 4_2_1 like Mac OS X; en-gb) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8C148 Safari/6533.18.5"
                 yield scrapy.Request(url=url)
             elif cmd == "stop":
@@ -119,7 +119,7 @@ class ArticleSpider(scrapy.Spider):
 
     def parse(self, res):
         logging.debug("%sparsing %s%s", Fore.LIGHTBLACK_EX, res.url, Style.RESET_ALL)
-        feed_item = res.meta
+        feed_item = res.meta["feed_item"]
         feed_item["published_dt"] = datetime.fromtimestamp(feed_item["published"])
         self.parse_page(res, feed_item)
 
